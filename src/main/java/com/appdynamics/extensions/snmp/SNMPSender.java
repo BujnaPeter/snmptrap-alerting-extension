@@ -108,6 +108,16 @@ public class SNMPSender {
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(trapOid)));
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapAddress, new IpAddress(trapHost)));
 
+        if (snmpData.getMachines() == null || "".equals(snmpData.getMachines()) || " ".equals(snmpData.getMachines())) {
+            snmpData.setMachines(" ");
+        }
+        if (snmpData.getTiers() == null || "".equals(snmpData.getTiers()) || " ".equals(snmpData.getTiers())) {
+            snmpData.setTiers(" ");
+        }
+        if (snmpData.getIpAddresses() == null || "".equals(snmpData.getIpAddresses()) || " ".equals(snmpData.getIpAddresses())) {
+            snmpData.setIpAddresses(" ");
+        }
+
         for (Field field : snmpData.getClass().getDeclaredFields())
         {
             if(field.get(snmpData) != null) {
@@ -201,7 +211,7 @@ public class SNMPSender {
     private void sendV3Trap(String host, String port, String trapHost, ADSnmpData snmpData, SnmpV3Configuration config,String trapOid,EngineProperties engineProperties)
             throws IOException, IllegalArgumentException, IllegalAccessException
     {
-        Lookup lookup = new Lookup();
+        Lookup lookUp = new Lookup();
 
         TransportMapping transport = new DefaultUdpTransportMapping();
         transport.listen();
@@ -307,7 +317,7 @@ public class SNMPSender {
                     Object snmpVal = new OctetString(field.get(snmpData).toString());
 
                     if (!(snmpVal.equals(" ") || snmpVal.equals(""))) {
-                        pdu.add(new VariableBinding(new OID(lookup.getOID(field.getName())), new OctetString(snmpVal.toString())));
+                        pdu.add(new VariableBinding(new OID(lookUp.getOID(field.getName())), new OctetString(snmpVal.toString())));
                     }
                 } catch (Throwable ex) {
                     logger.error("Error reading snmp data field:", ex);
