@@ -14,6 +14,7 @@ import java.util.Arrays;
 public class SnmpTrapAlertExtension {
 
     public static final String MULTI_TENANCY = "appDynamics.controller.multiTenant";
+    private static final String TRAP_OID_NOTIFICATIONS = "1.3.6.1.4.1.40684.1.1.1.500";
     private static final String TRAP_OID_01 = "1.3.6.1.4.1.40684.1.1.1.500.1";
     private static final String TRAP_OID_02 = "1.3.6.1.4.1.40684.1.1.1.500.2";
     private static final String TRAP_OID_03 = "1.3.6.1.4.1.40684.1.1.1.500.3";
@@ -118,15 +119,27 @@ public class SnmpTrapAlertExtension {
      *
      */
     private String getOID(Event event) {
-        if(event instanceof OtherEvent){
-            return TRAP_OID_07;
+        String TRAP_OID = TRAP_OID_01;
+        if(event instanceof OtherEvent) {
+            switch (config.getMibVersion()) {
+                case 1:
+                    TRAP_OID = TRAP_OID_NOTIFICATIONS;
+                    break;
+                case 2:
+                    TRAP_OID = TRAP_OID_03;
+                    break;
+                case 3:
+                    TRAP_OID = TRAP_OID_07;
+                    break;
+            }
+            return TRAP_OID;
         }
+
         HealthRuleViolationEvent violationEvent = (HealthRuleViolationEvent) event;
         String eventType = violationEvent.getEventType();
-        String TRAP_OID = TRAP_OID_01;
         switch (config.getMibVersion()) {
             case 1:
-                TRAP_OID = TRAP_OID_01;
+                TRAP_OID = TRAP_OID_NOTIFICATIONS;
                 break;
 
             case 2:
