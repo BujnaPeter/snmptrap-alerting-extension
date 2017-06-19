@@ -8,15 +8,13 @@ import com.appdynamics.extensions.snmp.config.ControllerConfig;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
 import java.util.List;
-import java.util.Map;
 
 public class SNMPDataBuilder {
 
-    public static final Joiner JOIN_ON_COMMA = Joiner.on(",");
+    private static final Joiner JOIN_ON_COMMA = Joiner.on(",");
     private Configuration config;
     private IService service = new ServiceImpl();
     private final HttpClientBuilder clientBuilder;
@@ -25,7 +23,7 @@ public class SNMPDataBuilder {
     private static Logger logger = Logger.getLogger(SNMPDataBuilder.class);
 
 
-    public SNMPDataBuilder(Configuration config) {
+    SNMPDataBuilder(Configuration config) {
         this.config = config;
         ControllerConfig controller = config.getController();
         clientBuilder = new HttpClientBuilder(controller.isUseSsl(), controller.getUserAccount(), controller.getPassword(), controller.getConnectTimeoutInSeconds() * 1000, controller.getSocketTimeoutInSeconds() * 1000);
@@ -33,7 +31,7 @@ public class SNMPDataBuilder {
     }
 
 
-    public ADSnmpData buildFromHealthRuleViolationEvent(HealthRuleViolationEvent violationEvent){
+    ADSnmpData buildFromHealthRuleViolationEvent(HealthRuleViolationEvent violationEvent){
         ADSnmpData snmpData = new ADSnmpData();
         snmpData.setApplication(violationEvent.getAppName());
         snmpData.setTriggeredBy(violationEvent.getHealthRuleName());
@@ -50,88 +48,75 @@ public class SNMPDataBuilder {
         snmpData.setIncidentId(violationEvent.getIncidentID());
         snmpData.setAccountId(CommonUtils.cleanUpAccountInfo(violationEvent.getAccountId()));
         //get BTs
-        List<String> bts = getBTs(violationEvent);
-        snmpData.setTxns( JOIN_ON_COMMA.join((bts)));
+        List<String> affectedBTs = getBTs(violationEvent);
+        snmpData.setTxns( JOIN_ON_COMMA.join((affectedBTs)));
         //get nodes
-        List<String> nodes = getNodes(violationEvent);
-        snmpData.setNodes( JOIN_ON_COMMA.join((nodes)));
-
+        List<String> affectedNodes = getNodes(violationEvent);
+        snmpData.setNodes( JOIN_ON_COMMA.join((affectedNodes)));
         //get tiers
-        List<String> tiers = getTiers(violationEvent);
-        snmpData.setTiers( JOIN_ON_COMMA.join((tiers)));
+        List<String> affectedTiers = getTiers(violationEvent);
+        snmpData.setTiers( JOIN_ON_COMMA.join((affectedTiers)));
 
         //get ip addresses and populate ip addresses, machine names
         if(config.isFetchMachineInfoFromApi()){
-            populateMachineInfo(violationEvent, nodes, tiers, snmpData);
+            populateMachineInfo(violationEvent, affectedNodes, affectedTiers, snmpData);
         } else {
             snmpData.setMachines(" ");
-            snmpData.setTiers(" ");
             snmpData.setIpAddresses(" ");
         }
-
         return snmpData;
     }
 
-    //There is a possibility that we may not have enough tier and node context in custom action.
-    //This is because of a bug in controller. The controller should at least send tier level info.
-    //It is not feasible to get just add all nodes and tiers if we are not able to resolve because that
-    //list could be huge.
-    private void populateMachineInfo(HealthRuleViolationEvent violationEvent, List<String> nodes, List<String> tiers, ADSnmpData snmpData) {
-        //get all nodes in this application
-        logger.debug("Tiers : " + tiers);
-        logger.debug("Nodes : " + nodes);
-        List<Node> allNodes = getAllNodesInApplication(violationEvent);
-        Map<String,Node> nodeMap = createNodeMap(allNodes);
-        if(!nodes.isEmpty() && tiers.isEmpty()){
-            List<String> tiersForNode = Lists.newArrayList();
-            List<String> machines = Lists.newArrayList();
-            List<String> ipAddresses = Lists.newArrayList();
-            for(String name : nodes){
-                Node node = nodeMap.get(name);
-                if(node != null){
-                    tiersForNode.add(node.getTierName());
-                    ipAddresses.addAll(node.getIpAddresses());
-                    machines.add(node.getMachineName());
-                }
-            }
-            snmpData.setTiers(JOIN_ON_COMMA.join((tiersForNode)));
-            snmpData.setMachines(JOIN_ON_COMMA.join(machines));
-            snmpData.setIpAddresses(JOIN_ON_COMMA.join(ipAddresses));
-        }
-        else if(!nodes.isEmpty() && !tiers.isEmpty()){
-            List<String> machines = Lists.newArrayList();
-            List<String> ipAddresses = Lists.newArrayList();
-            for(String name : nodes){
-                Node node = nodeMap.get(name);
-                if(node != null){
-                    ipAddresses.addAll(node.getIpAddresses());
-                    machines.add(node.getMachineName());
-                }
-            }
-            snmpData.setMachines(JOIN_ON_COMMA.join(machines));
-            snmpData.setIpAddresses(JOIN_ON_COMMA.join(ipAddresses));
-        }
-        else {
-            logger.debug("More information on the tiers and nodes cannot be resolved");
-        }
 
+    private void populateMachineInfo(HealthRuleViolationEvent violationEvent, List<String> affectedNodes, List<String> affectedTiers, ADSnmpData snmpData) {
+        logger.debug("Affected Tiers : " + affectedTiers);
+        logger.debug("Affected Nodes : " + affectedNodes);
+        List<String> machines = Lists.newArrayList();
+        List<String> ipAddresses = Lists.newArrayList();
+        List<Node> nodesInAffectedTiers = null;
+        if(!affectedTiers.isEmpty()){
+            nodesInAffectedTiers  = getAllNodesFromTiers(Integer.parseInt(violationEvent.getAppID()),affectedTiers);
+            collectMachineInfo(machines, ipAddresses, nodesInAffectedTiers);
+        }
+        if(!affectedNodes.isEmpty()){
+            for(String affectedNode : affectedNodes){
+                List<Node> nodes = getNodeFromNodeName(Integer.parseInt(violationEvent.getAppID()),affectedNode);
+                collectMachineInfo(machines, ipAddresses, nodes);
+            }
+        }
+        snmpData.setMachines(JOIN_ON_COMMA.join(machines));
+        snmpData.setIpAddresses(JOIN_ON_COMMA.join(ipAddresses));
     }
 
-    private Map<String, Node> createNodeMap(List<Node> allNodes) {
-
-        Map<String,Node> nodeMap = Maps.newHashMap();
-        for(Node node : allNodes){
-            nodeMap.put(node.getName(),node);
+    private void collectMachineInfo(List<String> machines, List<String> ipAddresses, List<Node> nodesInAffectedTiers) {
+        for(Node aNode : nodesInAffectedTiers){
+            machines.add(aNode.getMachineName());
+            ipAddresses.addAll(aNode.getIpAddresses());
         }
-        return nodeMap;
     }
 
-    private List<Node> getAllNodesInApplication(HealthRuleViolationEvent violationEvent) {
+    private List<Node> getNodeFromNodeName(int appId, String affectedNode) {
         ControllerConfig controller = config.getController();
-        String endpoint = endpointBuilder.buildNodesEndpoint(controller, Integer.parseInt(violationEvent.getAppID()));
+        String endpoint = endpointBuilder.getANodeEndpoint(controller,appId,affectedNode);
         List<Node> nodes = service.getNodes(clientBuilder,endpoint);
         return nodes;
     }
+
+    private List<Node> getAllNodesFromTiers(int applicationId,List<String> tiers) {
+        List<Node> nodes = Lists.newArrayList();
+        for(String tier:tiers){
+            nodes.addAll(getAllNodesInTier(applicationId,tier));
+        }
+        return nodes;
+    }
+
+    private List<Node> getAllNodesInTier(int applicationId,String tier) {
+        ControllerConfig controller = config.getController();
+        String endpoint = endpointBuilder.getNodesFromTierEndpoint(controller,applicationId,tier);
+        List<Node> nodes = service.getNodes(clientBuilder,endpoint);
+        return nodes;
+    }
+
 
     private String getTiersFromBTApi(HealthRuleViolationEvent violationEvent) {
         ControllerConfig controller = config.getController();
@@ -146,7 +131,7 @@ public class SNMPDataBuilder {
     }
 
 
-    public ADSnmpData buildFromOtherEvent(OtherEvent otherEvent){
+    ADSnmpData buildFromOtherEvent(OtherEvent otherEvent){
         ADSnmpData snmpData = new ADSnmpData();
         snmpData.setApplication(otherEvent.getAppName());
         snmpData.setTriggeredBy(otherEvent.getEventNotificationName());
@@ -186,13 +171,6 @@ public class SNMPDataBuilder {
 
     private boolean isAffectedEntityType(HealthRuleViolationEvent violationEvent, String type) {
         if(type.equalsIgnoreCase(violationEvent.getAffectedEntityType())){
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isClosedOrCancelledEvent(HealthRuleViolationEvent violationEvent) {
-        if(violationEvent.getEventType().startsWith(EventTypeEnum.POLICY_CANCELED.name()) || violationEvent.getEventType().startsWith(EventTypeEnum.POLICY_CLOSE.name())){
             return true;
         }
         return false;

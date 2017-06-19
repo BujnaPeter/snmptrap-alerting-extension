@@ -8,8 +8,12 @@ public class EndpointBuilder {
     public static final String HTTPS = "https://";
     public static final String HTTP = "http://";
     public static final String APP_ID_HOLDER = "<#APP_ID#>";
+    public static final String TIER_HOLDER = "<#TIER#>";
+    public static final String NODE_HOLDER = "<#NODE#>";
     public static final String BT_ENDPOINT = "/controller/rest/applications/"+ APP_ID_HOLDER + "/business-transactions";
     public static final String NODES_ENDPOINT = "/controller/rest/applications/"+ APP_ID_HOLDER + "/nodes";
+    public static final String NODES_FROM_TIER_ENDPOINT = "/controller/rest/applications/"+ APP_ID_HOLDER + "/tiers/" + TIER_HOLDER + "/nodes";
+    public static final String A_NODE_ENDPOINT = "/controller/rest/applications/"+ APP_ID_HOLDER + "/nodes/" + NODE_HOLDER;
 
     public String buildBTsEndpoint(ControllerConfig controller,int applicationId) {
         StringBuffer sb = getHost(controller).append(BT_ENDPOINT);
@@ -23,6 +27,21 @@ public class EndpointBuilder {
         return endpoint.replaceFirst(APP_ID_HOLDER,Integer.toString(applicationId));
     }
 
+    public String getNodesFromTierEndpoint(ControllerConfig controller,int applicationId,String tier){
+        StringBuffer sb = getHost(controller).append(NODES_FROM_TIER_ENDPOINT);
+        String endpoint = sb.toString();
+        endpoint = endpoint.replaceFirst(APP_ID_HOLDER,Integer.toString(applicationId));
+        endpoint = endpoint.replaceFirst(TIER_HOLDER,tier);
+        return endpoint;
+    }
+
+    public String getANodeEndpoint(ControllerConfig controller,int applicationId,String node){
+        StringBuffer sb = getHost(controller).append(A_NODE_ENDPOINT);
+        String endpoint = sb.toString();
+        endpoint = endpoint.replaceFirst(APP_ID_HOLDER,Integer.toString(applicationId));
+        endpoint = endpoint.replaceFirst(NODE_HOLDER,node);
+        return endpoint;
+    }
 
 
     private StringBuffer getHost(ControllerConfig controller){
@@ -36,5 +55,4 @@ public class EndpointBuilder {
         sb.append(controller.getHost()).append(":").append(controller.getPort());
         return sb;
     }
-
 }

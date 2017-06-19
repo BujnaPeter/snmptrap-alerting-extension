@@ -1,8 +1,14 @@
 package com.appdynamics.extensions;
 
 
+import com.appdynamics.extensions.alerts.customevents.Event;
+import com.appdynamics.extensions.alerts.customevents.EventBuilder;
+import com.appdynamics.extensions.snmp.SnmpTrapAlertExtension;
+import com.appdynamics.extensions.snmp.config.ConfigLoader;
+import com.appdynamics.extensions.snmp.config.Configuration;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -243,5 +249,14 @@ public class EventArgs {
         strings.add("\"APPLICATION_COMPONENT_NODE\"");  //affected entity type
         strings.add("\"MyMacMachineAgentNode1\""); //affected entity name
         strings.add("\"8\"");  //affected entity id
+    }
+
+    @Test
+    public void testEvent(){
+        String[] args = getHealthRuleViolationEventWithMultipleEvalEntityAndMultipleTriggerBaseline();
+        Event event = new EventBuilder().build(args);
+        Configuration config = ConfigLoader.getConfig(false,null);
+        SnmpTrapAlertExtension snmpTrap = new SnmpTrapAlertExtension(config);
+        snmpTrap.process(event);
     }
 }

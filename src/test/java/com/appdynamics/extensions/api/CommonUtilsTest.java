@@ -24,4 +24,6 @@ public class CommonUtilsTest {
         Assert.assertTrue(accountName.equalsIgnoreCase("JAMS"));
     }
 
+
+
 }

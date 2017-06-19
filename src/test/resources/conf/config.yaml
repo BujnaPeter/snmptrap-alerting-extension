@@ -50,11 +50,11 @@ snmpVersion: 2
 
 ######SNMP Trap information end##############
 
-encryptionKey: "helloWorld"
+#encryptionKey: "helloWorld"
 
 
 ######AppD information start##################
-fetchMachineInfoFromApi: false
+fetchMachineInfoFromApi: true
 
 
 #The controller information below is MANDATORY. The only reason this is needed is because
