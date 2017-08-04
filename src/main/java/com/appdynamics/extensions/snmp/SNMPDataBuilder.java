@@ -8,9 +8,12 @@ import com.appdynamics.extensions.snmp.config.ControllerConfig;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.log4j.Logger;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.Set;
 
 public class SNMPDataBuilder {
 
@@ -52,11 +55,8 @@ public class SNMPDataBuilder {
         snmpData.setTxns( JOIN_ON_COMMA.join((affectedBTs)));
         //get nodes
         List<String> affectedNodes = getNodes(violationEvent);
-        snmpData.setNodes( JOIN_ON_COMMA.join((affectedNodes)));
         //get tiers
         List<String> affectedTiers = getTiers(violationEvent);
-        snmpData.setTiers( JOIN_ON_COMMA.join((affectedTiers)));
-
         //get ip addresses and populate ip addresses, machine names
         if(config.isFetchMachineInfoFromApi()){
             populateMachineInfo(violationEvent, affectedNodes, affectedTiers, snmpData);
@@ -64,6 +64,8 @@ public class SNMPDataBuilder {
             snmpData.setMachines(" ");
             snmpData.setIpAddresses(" ");
         }
+        snmpData.setNodes( JOIN_ON_COMMA.join((affectedNodes)));
+        snmpData.setTiers( JOIN_ON_COMMA.join((affectedTiers)));
         return snmpData;
     }
 
@@ -73,36 +75,53 @@ public class SNMPDataBuilder {
         logger.debug("Affected Nodes : " + affectedNodes);
         List<String> machines = Lists.newArrayList();
         List<String> ipAddresses = Lists.newArrayList();
-        List<Node> nodesInAffectedTiers = null;
-        if(!affectedTiers.isEmpty()){
-            nodesInAffectedTiers  = getAllNodesFromTiers(Integer.parseInt(violationEvent.getAppID()),affectedTiers);
-            collectMachineInfo(machines, ipAddresses, nodesInAffectedTiers);
-        }
-        if(!affectedNodes.isEmpty()){
-            for(String affectedNode : affectedNodes){
-                List<Node> nodes = getNodeFromNodeName(Integer.parseInt(violationEvent.getAppID()),affectedNode);
-                collectMachineInfo(machines, ipAddresses, nodes);
+
+        try {
+            List<Node> nodesInAffectedTiers = null;
+            if(!affectedTiers.isEmpty()){
+                nodesInAffectedTiers  = getAllNodesFromTiers(Integer.parseInt(violationEvent.getAppID()),affectedTiers);
+                collectMachineInfo(machines, ipAddresses, nodesInAffectedTiers);
             }
+            if(!affectedNodes.isEmpty()){
+                for(String affectedNode : affectedNodes){
+                    List<Node> nodes = getNodeFromNodeName(Integer.parseInt(violationEvent.getAppID()),affectedNode);
+                    collectMachineInfo(machines, ipAddresses, nodes);
+                    //extracting tiers from the nodes and setting it..ugly..needs a clean approach.
+                    affectedTiers.addAll(collectTierInfo(nodes,affectedTiers));
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Encoding error",e);
         }
         snmpData.setMachines(JOIN_ON_COMMA.join(machines));
         snmpData.setIpAddresses(JOIN_ON_COMMA.join(ipAddresses));
     }
 
+    private Set<String> collectTierInfo(List<Node> nodes, List<String> affectedTiers) {
+        Set<String> setOfAffectedTiers = Sets.newHashSet(affectedTiers);
+        for(Node aNode : nodes){
+            setOfAffectedTiers.add(aNode.getTierName());
+        }
+        return setOfAffectedTiers;
+    }
+
     private void collectMachineInfo(List<String> machines, List<String> ipAddresses, List<Node> nodesInAffectedTiers) {
-        for(Node aNode : nodesInAffectedTiers){
-            machines.add(aNode.getMachineName());
-            ipAddresses.addAll(aNode.getIpAddresses());
+        if(nodesInAffectedTiers != null){
+            for(Node aNode : nodesInAffectedTiers){
+                machines.add(aNode.getMachineName());
+                ipAddresses.addAll(aNode.getIpAddresses());
+            }
         }
     }
 
-    private List<Node> getNodeFromNodeName(int appId, String affectedNode) {
+    private List<Node> getNodeFromNodeName(int appId, String affectedNode) throws UnsupportedEncodingException {
         ControllerConfig controller = config.getController();
         String endpoint = endpointBuilder.getANodeEndpoint(controller,appId,affectedNode);
         List<Node> nodes = service.getNodes(clientBuilder,endpoint);
         return nodes;
     }
 
-    private List<Node> getAllNodesFromTiers(int applicationId,List<String> tiers) {
+    private List<Node> getAllNodesFromTiers(int applicationId,List<String> tiers) throws UnsupportedEncodingException {
         List<Node> nodes = Lists.newArrayList();
         for(String tier:tiers){
             nodes.addAll(getAllNodesInTier(applicationId,tier));
@@ -110,7 +129,7 @@ public class SNMPDataBuilder {
         return nodes;
     }
 
-    private List<Node> getAllNodesInTier(int applicationId,String tier) {
+    private List<Node> getAllNodesInTier(int applicationId,String tier) throws UnsupportedEncodingException {
         ControllerConfig controller = config.getController();
         String endpoint = endpointBuilder.getNodesFromTierEndpoint(controller,applicationId,tier);
         List<Node> nodes = service.getNodes(clientBuilder,endpoint);

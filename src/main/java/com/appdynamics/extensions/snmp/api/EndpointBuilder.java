@@ -3,6 +3,10 @@ package com.appdynamics.extensions.snmp.api;
 
 import com.appdynamics.extensions.snmp.config.ControllerConfig;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLEncoder;
+
 public class EndpointBuilder {
 
     public static final String HTTPS = "https://";
@@ -27,19 +31,19 @@ public class EndpointBuilder {
         return endpoint.replaceFirst(APP_ID_HOLDER,Integer.toString(applicationId));
     }
 
-    public String getNodesFromTierEndpoint(ControllerConfig controller,int applicationId,String tier){
+    public String getNodesFromTierEndpoint(ControllerConfig controller,int applicationId,String tier) throws UnsupportedEncodingException {
         StringBuffer sb = getHost(controller).append(NODES_FROM_TIER_ENDPOINT);
         String endpoint = sb.toString();
         endpoint = endpoint.replaceFirst(APP_ID_HOLDER,Integer.toString(applicationId));
-        endpoint = endpoint.replaceFirst(TIER_HOLDER,tier);
+        endpoint = endpoint.replaceFirst(TIER_HOLDER, URLEncoder.encode(tier,"UTF-8"));
         return endpoint;
     }
 
-    public String getANodeEndpoint(ControllerConfig controller,int applicationId,String node){
+    public String getANodeEndpoint(ControllerConfig controller,int applicationId,String node) throws UnsupportedEncodingException {
         StringBuffer sb = getHost(controller).append(A_NODE_ENDPOINT);
         String endpoint = sb.toString();
         endpoint = endpoint.replaceFirst(APP_ID_HOLDER,Integer.toString(applicationId));
-        endpoint = endpoint.replaceFirst(NODE_HOLDER,node);
+        endpoint = endpoint.replaceFirst(NODE_HOLDER,URLEncoder.encode(node,"UTF-8"));
         return endpoint;
     }
 
