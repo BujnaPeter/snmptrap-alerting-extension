@@ -165,9 +165,7 @@ public class SNMPSender {
         comTarget.setRetries(2);
         comTarget.setTimeout(5000);
 
-        TimeTicks sysUpTime = new TimeTicks();
-        sysUpTime.fromMilliseconds(getSysUptime());
-
+        TimeTicks sysUpTime = getTimeTicks();
         PDU pdu = new PDU();
         pdu.add(new VariableBinding(SnmpConstants.sysUpTime,  sysUpTime));
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(trapOid)));
@@ -194,6 +192,20 @@ public class SNMPSender {
         Snmp snmp = new Snmp(transport);
         snmp.send(pdu, comTarget);
         snmp.close();
+    }
+
+    private TimeTicks getTimeTicks() {
+        TimeTicks sysUpTime = new TimeTicks();
+        long upTimeInMs = getSysUptime();
+        try {
+            sysUpTime.fromMilliseconds(upTimeInMs);
+        }
+        catch(IllegalArgumentException e){
+            if(upTimeInMs > 4294967295L){ //32bit unsigned only
+                sysUpTime.fromMilliseconds((int)upTimeInMs);
+            }
+        }
+        return sysUpTime;
     }
 
     /**
