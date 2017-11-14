@@ -45,7 +45,8 @@ public class Lookup
             "eventType",
             "ipAddresses",
             "incidentId",
-            "accountId"
+            "accountId",
+            "reasonCode"
     };
 
     public Lookup()

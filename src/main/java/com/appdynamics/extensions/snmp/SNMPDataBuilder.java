@@ -66,6 +66,7 @@ public class SNMPDataBuilder {
         }
         snmpData.setNodes( JOIN_ON_COMMA.join((affectedNodes)));
         snmpData.setTiers( JOIN_ON_COMMA.join((affectedTiers)));
+        snmpData.setReasonCode(getReasonCode(violationEvent.getAffectedEntityType(),violationEvent.getAppID()));
         return snmpData;
     }
 
@@ -258,7 +259,29 @@ public class SNMPDataBuilder {
         return types.toString();
     }
 
+    /**
+     * ReasonCode construction (ABN AMRO specific)
+     */
+    private String getReasonCode(String eventType, String appId) {
+        String eventTypeId = "00";
+        switch (eventType) {
+            case "APPLICATION":
+                eventTypeId = "01";
+                break;
+            case "APPLICATION_COMPONENT":
+                eventTypeId = "02";
+                break;
+            case "APPLICATION_COMPONENT_NODE":
+                eventTypeId = "03";
+                break;
+            case "BUSINESS_TRANSACTION":
+                eventTypeId = "04";
+                break;
+        }
+        String appIdFormatted = String.format("%03d", Integer.parseInt(appId));
+        String reasonCode = config.getReasonCodeTextString() + appIdFormatted + eventTypeId;
+        return reasonCode;
 
-
+    }
 
 }

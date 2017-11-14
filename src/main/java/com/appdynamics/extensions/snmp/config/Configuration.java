@@ -10,6 +10,7 @@ public class Configuration {
     private Receiver[] receivers;
     private String community;
     private String senderHost;
+    private String reasonCodeTextString;
     private int mibVersion = DEFAULT_MIB_VERSION;
     private int snmpVersion = DEFAULT_SNMP_VERSION;
     private SnmpV3Configuration snmpV3Configuration;
@@ -42,6 +43,14 @@ public class Configuration {
 
     public void setSenderHost(String senderHost) {
         this.senderHost = senderHost;
+    }
+
+    public String getReasonCodeTextString() {
+        return reasonCodeTextString;
+    }
+
+    public void setReasonCodeTextString(String reasonCodeTextString) {
+        this.reasonCodeTextString = reasonCodeTextString;
     }
 
     public int getMibVersion() {
@@ -114,6 +123,7 @@ public class Configuration {
                 "receivers=" + Arrays.toString(receivers) +
                 ", community='" + community + '\'' +
                 ", senderHost='" + senderHost + '\'' +
+                ", reasonCodeTextString=" + reasonCodeTextString + '\'' +
                 ", mibVersion=" + mibVersion +
                 ", snmpVersion=" + snmpVersion +
                 ", snmpV3Configuration=" + snmpV3Configuration +

@@ -6,13 +6,15 @@
 
     <groupId>com.appdynamics.extensions</groupId>
     <artifactId>snmp-trap-alert</artifactId>
-    <version>5.2.0</version>
+    <version>5.2.1</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <target.dir>${project.build.directory}/${project.artifactId}</target.dir>
         <jacksonVersion>2.1.5</jacksonVersion> <!-- using older version as it is the last version compatible with jdk 5 -->
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
 
     <dependencies>

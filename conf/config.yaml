@@ -13,6 +13,11 @@ community: "PUBLIC"
 #descriptive name of the snmp trap sender | host name or ip address are commonly used
 senderHost: ""
 
+#text part of reason code | can be empty or any string | used for ABN AMRO
+reasonCodeTextString: "MON.S.EPM.E"
+
+#Encryption key used for encrypting the passwords
+encryptionKey: ""
 
 #Indicates the version of the MIB file used from the files included in the distribution
 #there are 3 MIB file versions, each having their own level of OID segmentation
@@ -69,7 +74,7 @@ controller:
   port:
   useSsl: true
   userAccount: ""
-  password: ""
+  encryptedPassword: ""
 
 
 

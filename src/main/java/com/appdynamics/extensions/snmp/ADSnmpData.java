@@ -24,6 +24,7 @@ public class ADSnmpData
     String ipAddresses;
     String incidentId;
     String accountId;
+    String reasonCode;
 
 
     public String getApplication() {
@@ -162,6 +163,8 @@ public class ADSnmpData
         this.accountId = accountId;
     }
 
+    public void setReasonCode(String reasonCode) { this.reasonCode = reasonCode; }
+
     @Override
     public String toString() {
         return "ADSnmpData{" +
@@ -182,6 +185,7 @@ public class ADSnmpData
                 ", ipAddresses='" + ipAddresses + '\'' +
                 ", incidentId='" + incidentId + '\'' +
                 ", accountId='" + accountId + '\'' +
+                ", reasonCode='" + reasonCode + '\'' +
                 '}';
     }
 }

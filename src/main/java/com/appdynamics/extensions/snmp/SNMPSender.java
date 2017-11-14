@@ -43,6 +43,8 @@ public class SNMPSender {
                 if (config.getSnmpVersion() == SNMP_V1) {
                     sendV1Trap(receiver.getHost(), Integer.toString(receiver.getPort()), config.getCommunity(), config.getSenderHost(), snmpData,trapOid);
                 } else if (config.getSnmpVersion() == SNMP_V2) {
+                    //Debug for ABN AMRO testing
+                    logger.info("ABN AMRO SNMP Data: " + snmpData);
                     sendV2Trap(receiver.getHost(), Integer.toString(receiver.getPort()), config.getCommunity(), config.getSenderHost(), snmpData,trapOid);
                 } else if (config.getSnmpVersion() == SNMP_V3) {
                     String propertiesFile = ConfigLoader.getEngineConfig(config.getIsMultiTenant(), config.getAccountName());
