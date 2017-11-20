@@ -67,6 +67,7 @@ public class SNMPDataBuilder {
         snmpData.setNodes( JOIN_ON_COMMA.join((affectedNodes)));
         snmpData.setTiers( JOIN_ON_COMMA.join((affectedTiers)));
         snmpData.setReasonCode(getReasonCode(violationEvent.getAffectedEntityType(),violationEvent.getAppID()));
+        snmpData.setControllerHostName(getControllerHostName());
         return snmpData;
     }
 
@@ -281,7 +282,14 @@ public class SNMPDataBuilder {
         String appIdFormatted = String.format("%03d", Integer.parseInt(appId));
         String reasonCode = config.getReasonCodeTextString() + appIdFormatted + eventTypeId;
         return reasonCode;
+    }
 
+    /**
+     * Controller host name sending from config file senderHost variable (ABN AMRO specific)
+     */
+    private String getControllerHostName() {
+        String controllerHostName = config.getSenderHost();
+        return controllerHostName;
     }
 
 }

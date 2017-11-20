@@ -46,7 +46,8 @@ public class Lookup
             "ipAddresses",
             "incidentId",
             "accountId",
-            "reasonCode"
+            "reasonCode",
+            "controllerHostName"
     };
 
     public Lookup()

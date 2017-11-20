@@ -25,6 +25,7 @@ public class ADSnmpData
     String incidentId;
     String accountId;
     String reasonCode;
+    String controllerHostName;
 
 
     public String getApplication() {
@@ -165,6 +166,8 @@ public class ADSnmpData
 
     public void setReasonCode(String reasonCode) { this.reasonCode = reasonCode; }
 
+    public void setControllerHostName(String controllerHostName) { this.controllerHostName = controllerHostName; }
+
     @Override
     public String toString() {
         return "ADSnmpData{" +
@@ -186,6 +189,7 @@ public class ADSnmpData
                 ", incidentId='" + incidentId + '\'' +
                 ", accountId='" + accountId + '\'' +
                 ", reasonCode='" + reasonCode + '\'' +
+                ", controllerHostName='" + controllerHostName + '\'' +
                 '}';
     }
 }
