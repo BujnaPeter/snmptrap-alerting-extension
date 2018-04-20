@@ -103,8 +103,7 @@ public class SNMPSender {
         comTarget.setRetries(2);
         comTarget.setTimeout(5000);
 
-        TimeTicks sysUpTime = new TimeTicks();
-        sysUpTime.fromMilliseconds(getSysUptime());
+        TimeTicks sysUpTime = getTimeTicks();
 
         PDUv1 pdu = new PDUv1();
         pdu.setType(PDU.V1TRAP);
@@ -174,9 +173,8 @@ public class SNMPSender {
         comTarget.setRetries(2);
         comTarget.setTimeout(5000);
 
-        long upTimeInMs = getSysUptime();
+        TimeTicks sysUpTime = getTimeTicks();
 
-        TimeTicks sysUpTime = getTimeTicks(upTimeInMs);
         PDU pdu = new PDU();
         pdu.add(new VariableBinding(SnmpConstants.sysUpTime,  sysUpTime));
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(trapOid)));
@@ -205,6 +203,10 @@ public class SNMPSender {
         snmp.close();
     }
 
+    private TimeTicks getTimeTicks() {
+        long upTimeInMs = getSysUptime();
+        return CommonUtils.getTimeTicks(upTimeInMs);
+    }
 
 
     /**
@@ -312,8 +314,7 @@ public class SNMPSender {
         usrTarget.setSecurityName(new OctetString(config.getUsername()));
         usrTarget.setTimeout(5000);
 
-        TimeTicks sysUpTime = new TimeTicks();
-        sysUpTime.fromMilliseconds(getSysUptime());
+        TimeTicks sysUpTime = getTimeTicks();
 
         PDU pdu = new ScopedPDU();
         pdu.setType(PDU.NOTIFICATION);
