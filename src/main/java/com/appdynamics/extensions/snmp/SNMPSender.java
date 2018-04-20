@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.appdynamics.extensions.snmp.CommonUtils.getSysUptime;
+import static com.appdynamics.extensions.snmp.CommonUtils.getTimeTicks;
 
 public class SNMPSender {
 
@@ -173,7 +174,9 @@ public class SNMPSender {
         comTarget.setRetries(2);
         comTarget.setTimeout(5000);
 
-        TimeTicks sysUpTime = getTimeTicks();
+        long upTimeInMs = getSysUptime();
+
+        TimeTicks sysUpTime = getTimeTicks(upTimeInMs);
         PDU pdu = new PDU();
         pdu.add(new VariableBinding(SnmpConstants.sysUpTime,  sysUpTime));
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(trapOid)));
@@ -202,22 +205,7 @@ public class SNMPSender {
         snmp.close();
     }
 
-    private TimeTicks getTimeTicks() {
-        TimeTicks sysUpTime = new TimeTicks();
-        long upTimeInMs = getSysUptime();
-        try {
-            /*
-              Timeticks takes only unsigned int 32-bit values. 4294967295L
-              will rollover after 496 days and typecasting it to (int) would return -ve. So absolute
-             */
-            int upTime = (int)upTimeInMs;
-            sysUpTime.fromMilliseconds(Math.abs(upTime));
-        }
-        catch(IllegalArgumentException e){
-            logger.error("Cannot convert to timeticks for value " + upTimeInMs,e);
-        }
-        return sysUpTime;
-    }
+
 
     /**
      * Sends v3 Traps
