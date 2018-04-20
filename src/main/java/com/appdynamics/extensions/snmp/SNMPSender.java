@@ -206,12 +206,15 @@ public class SNMPSender {
         TimeTicks sysUpTime = new TimeTicks();
         long upTimeInMs = getSysUptime();
         try {
-            sysUpTime.fromMilliseconds(upTimeInMs);
+            /*
+              Timeticks takes only unsigned int 32-bit values. 4294967295L
+              will rollover after 496 days and typecasting it to (int) would return -ve. So absolute
+             */
+            int upTime = (int)upTimeInMs;
+            sysUpTime.fromMilliseconds(Math.abs(upTime));
         }
         catch(IllegalArgumentException e){
-            if(upTimeInMs > 4294967295L){ //32bit unsigned only
-                sysUpTime.fromMilliseconds((int)upTimeInMs);
-            }
+            logger.error("Cannot convert to timeticks for value " + upTimeInMs,e);
         }
         return sysUpTime;
     }
