@@ -14,6 +14,7 @@ import com.appdynamics.extensions.alerts.customevents.OtherEvent;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
+import org.snmp4j.smi.TimeTicks;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -77,5 +78,21 @@ public class CommonUtils {
             logger.error("Unsupported platform " + SystemUtils.OS_NAME + ".");
         }
         return _sysUpTime;
+    }
+
+    public static TimeTicks getTimeTicks(long upTimeInMs) {
+        TimeTicks sysUpTime = new TimeTicks();
+        try {
+            /*
+              Timeticks takes only unsigned int 32-bit values. 4294967295L
+              will rollover after 496 days and typecasting it to (int) would return -ve. So absolute
+             */
+            int upTime = (int)upTimeInMs;
+            sysUpTime.fromMilliseconds(Math.abs(upTime));
+        }
+        catch(IllegalArgumentException e){
+            logger.error("Cannot convert to timeticks for value " + upTimeInMs,e);
+        }
+        return sysUpTime;
     }
 }

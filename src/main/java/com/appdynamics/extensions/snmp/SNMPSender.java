@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.appdynamics.extensions.snmp.CommonUtils.getSysUptime;
+import static com.appdynamics.extensions.snmp.CommonUtils.getTimeTicks;
 
 public class SNMPSender {
 
@@ -102,8 +103,7 @@ public class SNMPSender {
         comTarget.setRetries(2);
         comTarget.setTimeout(5000);
 
-        TimeTicks sysUpTime = new TimeTicks();
-        sysUpTime.fromMilliseconds(getSysUptime());
+        TimeTicks sysUpTime = getTimeTicks();
 
         PDUv1 pdu = new PDUv1();
         pdu.setType(PDU.V1TRAP);
@@ -174,6 +174,7 @@ public class SNMPSender {
         comTarget.setTimeout(5000);
 
         TimeTicks sysUpTime = getTimeTicks();
+
         PDU pdu = new PDU();
         pdu.add(new VariableBinding(SnmpConstants.sysUpTime,  sysUpTime));
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(trapOid)));
@@ -203,18 +204,10 @@ public class SNMPSender {
     }
 
     private TimeTicks getTimeTicks() {
-        TimeTicks sysUpTime = new TimeTicks();
         long upTimeInMs = getSysUptime();
-        try {
-            sysUpTime.fromMilliseconds(upTimeInMs);
-        }
-        catch(IllegalArgumentException e){
-            if(upTimeInMs > 4294967295L){ //32bit unsigned only
-                sysUpTime.fromMilliseconds((int)upTimeInMs);
-            }
-        }
-        return sysUpTime;
+        return CommonUtils.getTimeTicks(upTimeInMs);
     }
+
 
     /**
      * Sends v3 Traps
@@ -321,8 +314,7 @@ public class SNMPSender {
         usrTarget.setSecurityName(new OctetString(config.getUsername()));
         usrTarget.setTimeout(5000);
 
-        TimeTicks sysUpTime = new TimeTicks();
-        sysUpTime.fromMilliseconds(getSysUptime());
+        TimeTicks sysUpTime = getTimeTicks();
 
         PDU pdu = new ScopedPDU();
         pdu.setType(PDU.NOTIFICATION);
