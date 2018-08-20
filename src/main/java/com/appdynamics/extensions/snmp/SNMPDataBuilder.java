@@ -66,7 +66,7 @@ public class SNMPDataBuilder {
         }
         snmpData.setNodes( JOIN_ON_COMMA.join((affectedNodes)));
         snmpData.setTiers( JOIN_ON_COMMA.join((affectedTiers)));
-        snmpData.setReasonCode(getReasonCode(violationEvent.getAffectedEntityType(),violationEvent.getAppID()));
+        snmpData.setReasonCode(getReasonCode(violationEvent.getAffectedEntityType(),violationEvent.getAppID(),violationEvent.getHealthRuleName()));
         snmpData.setControllerHostName(getControllerHostName());
         return snmpData;
     }
@@ -259,12 +259,12 @@ public class SNMPDataBuilder {
         }
         return types.toString();
     }
-
     /**
      * ReasonCode construction (ABN AMRO specific)
      */
-    private String getReasonCode(String eventType, String appId) {
+    private String getReasonCode(String eventType, String appId, String healthRuleName) {
         String eventTypeId = "00";
+        String reasonCode = null;
         switch (eventType) {
             case "APPLICATION":
                 eventTypeId = "01";
@@ -272,15 +272,30 @@ public class SNMPDataBuilder {
             case "APPLICATION_COMPONENT":
                 eventTypeId = "02";
                 break;
-            case "APPLICATION_COMPONENT_NODE":
+            case "BUSINESS_TRANSACTION":
                 eventTypeId = "03";
                 break;
-            case "BUSINESS_TRANSACTION":
-                eventTypeId = "04";
+            case "APPLICATION_COMPONENT_NODE":
+                String reasonCodeKeyWordMachineAgentDown = config.getReasonCodeKeyWordMachineAgentDown().toLowerCase();
+                if(healthRuleName.toLowerCase().contains(reasonCodeKeyWordMachineAgentDown)) {
+                    eventTypeId = "99";
+                    break;
+                }
+                else {
+                    eventTypeId = "04";
+                    break;
+                }
+            case "BACKEND":
+                eventTypeId = "05";
                 break;
         }
-        String appIdFormatted = String.format("%03d", Integer.parseInt(appId));
-        String reasonCode = config.getReasonCodeTextString() + appIdFormatted + eventTypeId;
+        if(eventTypeId == "99") {
+            reasonCode = config.getReasonCodeTextString() + config.getReasonCodeMachineAgentDown();
+        }
+        else {
+            String appIdFormatted = String.format("%03d", Integer.parseInt(appId));
+            reasonCode = config.getReasonCodeTextString() + appIdFormatted + eventTypeId;
+        }
         return reasonCode;
     }
 

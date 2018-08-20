@@ -11,6 +11,8 @@ public class Configuration {
     private String community;
     private String senderHost;
     private String reasonCodeTextString;
+    private String reasonCodeMachineAgentDown;
+    private String reasonCodeKeyWordMachineAgentDown;
     private int mibVersion = DEFAULT_MIB_VERSION;
     private int snmpVersion = DEFAULT_SNMP_VERSION;
     private SnmpV3Configuration snmpV3Configuration;
@@ -51,6 +53,20 @@ public class Configuration {
 
     public void setReasonCodeTextString(String reasonCodeTextString) {
         this.reasonCodeTextString = reasonCodeTextString;
+    }
+
+    public String getReasonCodeMachineAgentDown() {
+        return reasonCodeMachineAgentDown;
+    }
+
+    public void setReasonCodeMachineAgentDown(String reasonCodeMachineAgentDown) {
+        this.reasonCodeMachineAgentDown = reasonCodeMachineAgentDown;
+    }
+
+    public String getReasonCodeKeyWordMachineAgentDown() {return reasonCodeKeyWordMachineAgentDown; }
+
+    public void setReasonCodeKeyWordMachineAgentDown(String reasonCodeKeyWordMachineAgentDown) {
+        this.reasonCodeKeyWordMachineAgentDown = reasonCodeKeyWordMachineAgentDown;
     }
 
     public int getMibVersion() {
@@ -124,6 +140,8 @@ public class Configuration {
                 ", community='" + community + '\'' +
                 ", senderHost='" + senderHost + '\'' +
                 ", reasonCodeTextString=" + reasonCodeTextString + '\'' +
+                ", reasonCodeMachineAgentDown=" + reasonCodeMachineAgentDown + '\'' +
+                ", reasonCodeKeyWordMachineAgentDown=" + reasonCodeKeyWordMachineAgentDown + '\'' +
                 ", mibVersion=" + mibVersion +
                 ", snmpVersion=" + snmpVersion +
                 ", snmpV3Configuration=" + snmpV3Configuration +

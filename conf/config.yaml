@@ -16,6 +16,12 @@ senderHost: ""
 #text part of reason code | can be empty or any string | used for ABN AMRO
 reasonCodeTextString: "MON.S.EPM.E"
 
+#numeric part of reason code for machine agent down event | mandatory - 5 letter string | used for ABN AMRO
+reasonCodeMachineAgentDown: "99999"
+
+#string keyword used to match keyword in HR name to identify machine agent down event | mandatory - any characters | used for ABN AMRO
+reasonCodeKeyWordMachineAgentDown: "Machine agent"
+
 #Encryption key used for encrypting the passwords
 encryptionKey: ""
 
